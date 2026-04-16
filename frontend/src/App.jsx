@@ -3,24 +3,34 @@ import './App.css';
 import SearchPanel from './components/SearchPanel';
 import ResultsList from './components/ResultsList';
 import PdfViewer from './components/PdfViewer';
-import { searchPesticides, getProduct } from './api/epaApi';
+import { searchPesticides } from './api/epaApi';
+import { useProductSelection } from './hooks/useProductSelection';
 
+/**
+ * App — top-level shell and search state manager.
+ * When integrating into another project, lift this component's JSX into
+ * the host app's layout and pass the required props down to each component.
+ */
 export default function App() {
   const [searchLoading, setSearchLoading] = useState(false);
-  const [searchError, setSearchError] = useState(null);
-  const [results, setResults] = useState(null);
+  const [searchError, setSearchError]     = useState(null);
+  const [results, setResults]             = useState(null);
 
-  const [selectedRegNo, setSelectedRegNo] = useState(null);
-  const [product, setProduct] = useState(null);
-  const [productLoading, setProductLoading] = useState(false);
-  const [productError, setProductError] = useState(null);
+  // Product selection state is isolated in a reusable hook
+  const {
+    selectedRegNo,
+    product,
+    productLoading,
+    productError,
+    selectProduct,
+    clearProduct,
+  } = useProductSelection();
 
   async function handleSearch({ query, mode }) {
     setSearchLoading(true);
     setSearchError(null);
     setResults(null);
-    setSelectedRegNo(null);
-    setProduct(null);
+    clearProduct();
     try {
       const data = await searchPesticides(query, mode);
       // Backend returns { query, mode, results: [...] }
@@ -30,22 +40,6 @@ export default function App() {
       setSearchError(err.message);
     } finally {
       setSearchLoading(false);
-    }
-  }
-
-  async function handleSelect(regNo) {
-    if (regNo === selectedRegNo) return;
-    setSelectedRegNo(regNo);
-    setProduct(null);
-    setProductError(null);
-    setProductLoading(true);
-    try {
-      const data = await getProduct(regNo);
-      setProduct(data);
-    } catch (err) {
-      setProductError(err.message);
-    } finally {
-      setProductLoading(false);
     }
   }
 
@@ -63,7 +57,7 @@ export default function App() {
             <ResultsList
               results={results}
               selectedRegNo={selectedRegNo}
-              onSelect={handleSelect}
+              onSelect={selectProduct}
               error={searchError}
             />
           </div>

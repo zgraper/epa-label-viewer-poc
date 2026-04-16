@@ -1,5 +1,6 @@
 import express from 'express';
 import { searchPesticides, getProductByRegNo } from '../services/epaService.js';
+import { isValidRegNo } from '../utils/validation.js';
 
 const router = express.Router();
 
@@ -37,7 +38,7 @@ router.get('/product/:regNo', async (req, res) => {
   const { regNo } = req.params;
 
   // Basic sanity check — EPA reg numbers look like "12345-678" or "12345-678-9"
-  if (!/^\d+-\d+(-\d+)?$/.test(regNo)) {
+  if (!isValidRegNo(regNo)) {
     return res.status(400).json({ error: 'Invalid EPA registration number format' });
   }
 
