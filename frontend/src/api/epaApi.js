@@ -8,10 +8,12 @@ const BASE = '/api/pesticides';
 /**
  * Search pesticide products by keyword.
  * @param {string} query
- * @returns {Promise<Array>}
+ * @param {'product'|'ingredient'|'regno'} mode
+ * @returns {Promise<{ query: string, mode: string, results: Array }>}
  */
-export async function searchPesticides(query) {
-  const res = await fetch(`${BASE}/search?q=${encodeURIComponent(query)}`);
+export async function searchPesticides(query, mode = 'product') {
+  const url = `${BASE}/search?q=${encodeURIComponent(query)}&mode=${encodeURIComponent(mode)}`;
+  const res = await fetch(url);
   if (!res.ok) throw new Error(`Search failed: ${res.status}`);
   return res.json();
 }
