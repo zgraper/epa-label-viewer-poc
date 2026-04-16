@@ -1,0 +1,41 @@
+.panel {
+  display: flex;
+  gap: 8px;
+  padding: 16px 24px;
+  background: #fff;
+  border-bottom: 1px solid #e0e4ea;
+}
+
+.input {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid #c4cdd6;
+  border-radius: 6px;
+  font-size: 15px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus {
+  border-color: #2563eb;
+}
+
+.button {
+  padding: 10px 22px;
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
