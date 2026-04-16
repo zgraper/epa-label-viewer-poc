@@ -8,24 +8,19 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 16px;
-  cursor: pointer;
+  padding: 10px 12px;
   border-bottom: 1px solid #f0f2f5;
-  transition: background 0.1s;
-}
-
-.item:hover {
-  background: #f0f4ff;
 }
 
 .selected {
-  background: #dbeafe;
+  background: #eff6ff;
   border-left: 3px solid #2563eb;
 }
 
 .name {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
+  line-height: 1.3;
 }
 
 .company {
@@ -33,9 +28,47 @@
   color: #6b7280;
 }
 
+.footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 1px;
+}
+
 .regNo {
   font-size: 11px;
   color: #9ca3af;
+}
+
+.status {
+  font-size: 11px;
+  color: #059669;
+  background: #d1fae5;
+  padding: 1px 6px;
+  border-radius: 10px;
+}
+
+.viewBtn {
+  margin-top: 6px;
+  align-self: flex-start;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2563eb;
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.viewBtn:hover:not(:disabled) {
+  background: #dbeafe;
+}
+
+.viewBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .message {

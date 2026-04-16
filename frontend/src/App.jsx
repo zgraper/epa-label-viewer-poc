@@ -15,15 +15,17 @@ export default function App() {
   const [productLoading, setProductLoading] = useState(false);
   const [productError, setProductError] = useState(null);
 
-  async function handleSearch(query) {
+  async function handleSearch({ query, mode }) {
     setSearchLoading(true);
     setSearchError(null);
     setResults(null);
     setSelectedRegNo(null);
     setProduct(null);
     try {
-      const data = await searchPesticides(query);
-      setResults(Array.isArray(data) ? data : []);
+      const data = await searchPesticides(query, mode);
+      // Backend returns { query, mode, results: [...] }
+      const items = Array.isArray(data?.results) ? data.results : [];
+      setResults(items);
     } catch (err) {
       setSearchError(err.message);
     } finally {

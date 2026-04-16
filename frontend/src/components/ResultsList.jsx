@@ -2,7 +2,7 @@ import styles from './ResultsList.module.css';
 
 /**
  * ResultsList — renders a list of pesticide product search results.
- * Calls onSelect(regNo) when a row is clicked.
+ * Calls onSelect(epaRegNo) when "View Labels" is clicked.
  */
 export default function ResultsList({ results, selectedRegNo, onSelect, error }) {
   if (error) {
@@ -20,20 +20,27 @@ export default function ResultsList({ results, selectedRegNo, onSelect, error })
   return (
     <ul className={styles.list}>
       {results.map((item) => {
-        const regNo = item.reg_no ?? item.registration_number ?? item.regno;
-        const name = item.product_name ?? item.name ?? '(unnamed)';
-        const company = item.company_name ?? item.company ?? '';
+        const regNo   = item.epaRegNo;
+        const name    = item.productName  || '(unnamed)';
+        const company = item.companyName  || '';
+        const status  = item.productStatus || '';
         const isSelected = regNo === selectedRegNo;
 
         return (
-          <li
-            key={regNo}
-            className={`${styles.item} ${isSelected ? styles.selected : ''}`}
-            onClick={() => onSelect(regNo)}
-          >
+          <li key={regNo} className={`${styles.item} ${isSelected ? styles.selected : ''}`}>
             <span className={styles.name}>{name}</span>
             {company && <span className={styles.company}>{company}</span>}
-            <span className={styles.regNo}>Reg #{regNo}</span>
+            <div className={styles.footer}>
+              <span className={styles.regNo}>Reg #{regNo}</span>
+              {status && <span className={styles.status}>{status}</span>}
+            </div>
+            <button
+              className={styles.viewBtn}
+              onClick={() => onSelect(regNo)}
+              disabled={isSelected}
+            >
+              {isSelected ? 'Viewing' : 'View Labels'}
+            </button>
           </li>
         );
       })}
