@@ -1,6 +1,8 @@
 /**
  * epaApi.js
+ *
  * Thin wrapper around the backend /api/pesticides endpoints.
+ * When integrating into another project, update BASE to point at the host app's backend.
  */
 
 const BASE = '/api/pesticides';

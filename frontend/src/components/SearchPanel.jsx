@@ -10,6 +10,9 @@ const MODES = [
 /**
  * SearchPanel — text input, mode dropdown, and search button.
  * Calls onSearch({ query, mode }) when submitted.
+ *
+ * When integrating into another project, this component is self-contained —
+ * just wire up the onSearch callback and pass a loading boolean.
  */
 export default function SearchPanel({ onSearch, loading }) {
   const [query, setQuery] = useState('');

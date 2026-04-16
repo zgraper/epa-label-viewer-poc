@@ -3,6 +3,9 @@ import styles from './ResultsList.module.css';
 /**
  * ResultsList — renders a list of pesticide product search results.
  * Calls onSelect(epaRegNo) when "View Labels" is clicked.
+ *
+ * When integrating into another project, this component only needs
+ * the results array and onSelect/selectedRegNo props from the host's state.
  */
 export default function ResultsList({ results, selectedRegNo, onSelect, error }) {
   if (error) {

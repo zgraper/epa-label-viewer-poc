@@ -25,6 +25,34 @@
   color: #6b7280;
 }
 
+.versionRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.versionLabel {
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+}
+
+.versionSelect {
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: #fff;
+  color: #374151;
+  cursor: pointer;
+}
+
+.versionSelect:focus {
+  outline: none;
+  border-color: #2563eb;
+}
+
 .externalLink {
   display: inline-block;
   margin-top: 6px;
