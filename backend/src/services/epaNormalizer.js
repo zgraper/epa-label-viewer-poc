@@ -80,6 +80,44 @@ export function extractLabelDocs(product) {
 }
 
 /**
+ * Normalize a raw EPA registration number to the zero-padded format expected
+ * by the PPLS exact-lookup endpoint.
+ *
+ * EPA search results return numbers like "524-688", but the detail endpoint
+ * requires "000524-00688" (company part padded to 6 digits, product part to 5).
+ *
+ * Distributor numbers have three hyphen-separated parts (e.g. "524-688-1") and
+ * are not resolvable via the single-product endpoint; they are rejected here so
+ * the caller can return a meaningful 400 error instead of a silent 404.
+ *
+ * @param {string} regNo  - Raw EPA registration number, e.g. "524-688"
+ * @returns {string}      - Zero-padded lookup key, e.g. "000524-00688"
+ * @throws {Error}        - err.statusCode === 400 for unsupported/invalid input
+ */
+export function toEpaLookupKey(regNo) {
+  const parts = String(regNo).split('-');
+
+  if (parts.length === 3 && parts.every(p => /^\d+$/.test(p))) {
+    // Distributor numbers (three parts) cannot be looked up on the product endpoint.
+    const err = new Error(
+      `Distributor registration number "${regNo}" is not supported for direct product lookup`,
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (parts.length !== 2 || !parts.every(p => /^\d+$/.test(p))) {
+    const err = new Error(`Invalid EPA registration number format: "${regNo}"`);
+    err.statusCode = 400;
+    throw err;
+  }
+
+  const [company, product] = parts;
+  // EPA PPLS expects the company segment padded to 6 digits and the product segment to 5.
+  return `${company.padStart(6, '0')}-${product.padStart(5, '0')}`;
+}
+
+/**
  * Extract and normalize active ingredients from a product record.
  *
  * @param {object} product

@@ -20,17 +20,29 @@ export default function ResultsList({ results, selectedRegNo, onSelect, error })
     return <p className={styles.message}>No results found.</p>;
   }
 
+  // Deduplicate by epaRegNo so search results that share a reg number don't
+  // cause duplicate entries or React key warnings.
+  const seen = new Set();
+  const uniqueResults = results.filter((item) => {
+    if (seen.has(item.epaRegNo)) return false;
+    seen.add(item.epaRegNo);
+    return true;
+  });
+
   return (
     <ul className={styles.list}>
-      {results.map((item) => {
+      {uniqueResults.map((item, i) => {
         const regNo   = item.epaRegNo;
         const name    = item.productName  || '(unnamed)';
         const company = item.companyName  || '';
         const status  = item.productStatus || '';
         const isSelected = regNo === selectedRegNo;
 
+        // Use regNo as key; fall back to index if regNo is empty.
+        const key = regNo || String(i);
+
         return (
-          <li key={regNo} className={`${styles.item} ${isSelected ? styles.selected : ''}`}>
+          <li key={key} className={`${styles.item} ${isSelected ? styles.selected : ''}`}>
             <span className={styles.name}>{name}</span>
             {company && <span className={styles.company}>{company}</span>}
             <div className={styles.footer}>

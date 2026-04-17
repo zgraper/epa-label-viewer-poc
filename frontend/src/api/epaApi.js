@@ -27,6 +27,10 @@ export async function searchPesticides(query, mode = 'product') {
  */
 export async function getProduct(regNo) {
   const res = await fetch(`${BASE}/product/${encodeURIComponent(regNo)}`);
-  if (!res.ok) throw new Error(`Product lookup failed: ${res.status}`);
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    const detail = body?.error ?? `HTTP ${res.status}`;
+    throw new Error(`Product lookup failed for "${regNo}": ${detail}`);
+  }
   return res.json();
 }
