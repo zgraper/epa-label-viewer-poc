@@ -29,6 +29,29 @@ import {
   getBaseRegNo,
 } from './epaNormalizer.js';
 
+// ---------------------------------------------------------------------------
+// Search ranking
+// ---------------------------------------------------------------------------
+
+/**
+ * Assign a sort rank to a normalized search result.
+ * Lower numbers sort first.
+ *
+ * 0 — active standard registration
+ * 1 — active distributor registration
+ * 2 — inactive standard or distributor registration
+ * 3 — SLN or unknown number (unsupported lookup)
+ *
+ * @param {{ regType: string, isSupportedLookup: boolean, productStatus: string }} item
+ * @returns {number}
+ */
+function searchRank(item) {
+  if (!item.isSupportedLookup) return 3;
+  const isActive = /registered/i.test(item.productStatus);
+  if (!isActive) return 2;
+  return item.regType === 'standard' ? 0 : 1;
+}
+
 // Base URLs for each endpoint family
 const EPA_SEARCH_BASE  = 'https://ordspub.epa.gov/ords/pesticides/cswu/ProductSearch/partialprodsearch/v2';
 const EPA_ING_BASE     = 'https://ordspub.epa.gov/ords/pesticides/ProductSearch/searchWithIngName/v1';
@@ -144,10 +167,13 @@ export async function searchPesticides(query, mode = 'product') {
       rawItems = await searchByProductName(query);
   }
 
+  const normalized = rawItems.map(normalizeSearchItem);
+  normalized.sort((a, b) => searchRank(a) - searchRank(b));
+
   return {
     query,
     mode,
-    results: rawItems.map(normalizeSearchItem),
+    results: normalized,
   };
 }
 

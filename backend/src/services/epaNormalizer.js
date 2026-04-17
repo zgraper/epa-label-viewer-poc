@@ -27,17 +27,40 @@ export function pick(obj, keys, fallback = '') {
 }
 
 /**
+ * Classify an EPA registration number into one of four types.
+ *
+ * - standard:    two digit-only segments separated by a hyphen, e.g. "524-689"
+ * - distributor: three digit-only segments separated by hyphens, e.g. "524-475-72207"
+ * - sln:         two ASCII letters followed by digits only, e.g. "LA770008"
+ * - unknown:     everything else
+ *
+ * @param {string} regNo
+ * @returns {'standard'|'distributor'|'sln'|'unknown'}
+ */
+export function classifyRegNo(regNo) {
+  const s = String(regNo ?? '');
+  if (/^\d+-\d+-\d+$/.test(s)) return 'distributor';
+  if (/^\d+-\d+$/.test(s))     return 'standard';
+  if (/^[A-Za-z]{2}\d+$/.test(s)) return 'sln';
+  return 'unknown';
+}
+
+/**
  * Normalize a raw search-result item into a consistent shape.
  *
  * @param {object} item
- * @returns {{ epaRegNo: string, productName: string, productStatus: string, companyName: string }}
+ * @returns {{ epaRegNo: string, productName: string, productStatus: string, companyName: string, regType: string, isSupportedLookup: boolean }}
  */
 export function normalizeSearchItem(item) {
+  const epaRegNo = pick(item, ['eparegnumber', 'eparegno', 'epa_reg_no']);
+  const regType  = classifyRegNo(epaRegNo);
   return {
-    epaRegNo:      pick(item, ['eparegnumber', 'eparegno', 'epa_reg_no']),
-    productName:   pick(item, ['productname', 'product_name']),
-    productStatus: pick(item, ['product_status', 'registrationstatus', 'product_name_status']),
-    companyName:   pick(item, ['companyname', 'company_name']),
+    epaRegNo,
+    productName:      pick(item, ['productname', 'product_name']),
+    productStatus:    pick(item, ['product_status', 'registrationstatus', 'product_name_status']),
+    companyName:      pick(item, ['companyname', 'company_name']),
+    regType,
+    isSupportedLookup: regType === 'standard' || regType === 'distributor',
   };
 }
 

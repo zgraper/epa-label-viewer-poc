@@ -32,17 +32,19 @@ export default function ResultsList({ results, selectedRegNo, onSelect, error })
   return (
     <ul className={styles.list}>
       {uniqueResults.map((item, i) => {
-        const regNo   = item.epaRegNo;
-        const name    = item.productName  || '(unnamed)';
-        const company = item.companyName  || '';
-        const status  = item.productStatus || '';
-        const isSelected = regNo === selectedRegNo;
+        const regNo     = item.epaRegNo;
+        const name      = item.productName  || '(unnamed)';
+        const company   = item.companyName  || '';
+        const status    = item.productStatus || '';
+        const supported = item.isSupportedLookup !== false;
+        const isSln     = item.regType === 'sln';
+        const isSelected = supported && regNo === selectedRegNo;
 
         // Use regNo as key; fall back to index if regNo is empty.
         const key = regNo || String(i);
 
         return (
-          <li key={key} className={`${styles.item} ${isSelected ? styles.selected : ''}`}>
+          <li key={key} className={`${styles.item} ${isSelected ? styles.selected : ''} ${!supported ? styles.unsupported : ''}`}>
             <span className={styles.name}>{name}</span>
             {company && <span className={styles.company}>{company}</span>}
             <div className={styles.footer}>
@@ -50,12 +52,19 @@ export default function ResultsList({ results, selectedRegNo, onSelect, error })
               {status && <span className={styles.status}>{status}</span>}
             </div>
             <button
-              className={styles.viewBtn}
-              onClick={() => onSelect(regNo)}
-              disabled={isSelected}
+              className={`${styles.viewBtn} ${!supported ? styles.viewBtnUnsupported : ''}`}
+              onClick={() => supported && onSelect(regNo)}
+              disabled={isSelected || !supported}
             >
-              {isSelected ? 'Viewing' : 'View Labels'}
+              {isSelected ? 'Viewing' : supported ? 'View Labels' : 'Not supported'}
             </button>
+            {!supported && (
+              <p className={styles.unsupportedNote}>
+                {isSln
+                  ? 'Special Local Need number not yet supported in this POC'
+                  : 'This registration number format is not yet supported in this POC'}
+              </p>
+            )}
           </li>
         );
       })}
