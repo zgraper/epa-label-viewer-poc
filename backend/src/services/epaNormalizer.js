@@ -117,6 +117,18 @@ export function toEpaLookupKey(regNo) {
 }
 
 /**
+ * Extract the base 2-part registration number from a 3-part distributor number.
+ * Returns the first two segments joined by a hyphen.
+ *
+ * @param {string} regNo  - Distributor EPA registration number, e.g. "524-475-72207"
+ * @returns {string}      - Base registration number, e.g. "524-475"
+ */
+export function getBaseRegNo(regNo) {
+  const parts = String(regNo).split('-');
+  return `${parts[0]}-${parts[1]}`;
+}
+
+/**
  * Normalize a raw distributor EPA registration number to the zero-padded format
  * expected by the PPLS distributor detail endpoint (`/ords/pesticides/ppldist/`).
  *
