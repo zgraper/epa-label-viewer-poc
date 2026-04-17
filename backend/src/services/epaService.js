@@ -31,6 +31,35 @@ import {
 import { scrapeProductFromHtml } from './epaHtmlScraper.js';
 
 // ---------------------------------------------------------------------------
+// Product-status helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Classify a product status string as active or inactive.
+ *
+ * Active statuses contain words like "active", "registered", or "current".
+ * Inactive statuses contain words like "inactive", "cancelled"/"canceled",
+ * "deleted", or "historical".  Any status that doesn't match either list is
+ * treated as active so that unknown statuses are not silently hidden.
+ *
+ * @param {string} status - Raw productStatus string from EPA data
+ * @returns {boolean}     - true when the product should be treated as active
+ */
+export function isActiveProduct(status) {
+  const s = String(status ?? '').toLowerCase();
+
+  // Explicitly inactive keywords — treat these as inactive.
+  if (/inactive|cancell?ed|deleted|historical/.test(s)) return false;
+
+  // Explicitly active keywords — treat these as active.
+  if (/active|registered|current/.test(s)) return true;
+
+  // Status is empty or unrecognized — default to active so products are not
+  // silently hidden when EPA returns an unexpected status value.
+  return true;
+}
+
+// ---------------------------------------------------------------------------
 // Search ranking
 // ---------------------------------------------------------------------------
 
@@ -48,8 +77,7 @@ import { scrapeProductFromHtml } from './epaHtmlScraper.js';
  */
 function searchRank(item) {
   if (!item.isSupportedLookup) return 3;
-  const isActive = /registered/i.test(item.productStatus);
-  if (!isActive) return 2;
+  if (!isActiveProduct(item.productStatus)) return 2;
   return item.regType === 'standard' ? 0 : 1;
 }
 
@@ -150,11 +178,12 @@ async function lookupDistributor(regNo) {
 /**
  * Search pesticide products.
  *
- * @param {string} query   - The search term
+ * @param {string}  query      - The search term
  * @param {'product'|'ingredient'|'regno'} mode
+ * @param {boolean} [activeOnly=true] - When true, filter out inactive products before returning
  * @returns {Promise<{ query: string, mode: string, results: Array }>}
  */
-export async function searchPesticides(query, mode = 'product') {
+export async function searchPesticides(query, mode = 'product', activeOnly = true) {
   let rawItems;
   switch (mode) {
     case 'ingredient':
@@ -168,13 +197,19 @@ export async function searchPesticides(query, mode = 'product') {
       rawItems = await searchByProductName(query);
   }
 
+  // Filter before sorting so the ranking step operates on a smaller list.
   const normalized = rawItems.map(normalizeSearchItem);
-  normalized.sort((a, b) => searchRank(a) - searchRank(b));
+  const filtered = activeOnly
+    ? normalized.filter(item => isActiveProduct(item.productStatus))
+    : normalized;
+
+  filtered.sort((a, b) => searchRank(a) - searchRank(b));
+  const results = filtered;
 
   return {
     query,
     mode,
-    results: normalized,
+    results,
   };
 }
 
