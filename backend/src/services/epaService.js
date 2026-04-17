@@ -24,6 +24,7 @@ import {
   normalizeSearchItem,
   extractLabelDocs,
   extractActiveIngredients,
+  toEpaLookupKey,
 } from './epaNormalizer.js';
 
 // Base URLs for each endpoint family
@@ -92,7 +93,12 @@ export async function searchPesticides(query, mode = 'product') {
  * @returns {Promise<object|null>} Normalized product record, or null if not found
  */
 export async function getProductByRegNo(regNo) {
-  const url = `${EPA_PRODUCT_BASE}/${encodeURIComponent(regNo)}`;
+  // Normalize to the zero-padded format the EPA detail endpoint expects.
+  // Throws with statusCode 400 for distributor numbers or invalid formats.
+  const lookupKey = toEpaLookupKey(regNo);
+
+  const url = `${EPA_PRODUCT_BASE}/${encodeURIComponent(lookupKey)}`;
+  console.log(`EPA product lookup: ${url}`);
   const data = await fetchJson(url);
   if (!data) return null;
 

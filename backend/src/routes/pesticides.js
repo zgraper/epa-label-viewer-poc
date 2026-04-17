@@ -45,10 +45,13 @@ router.get('/product/:regNo', async (req, res) => {
   try {
     const product = await getProductByRegNo(regNo);
     if (!product) {
-      return res.status(404).json({ error: `Product not found for registration number "${regNo}"` });
+      return res.status(404).json({ error: `No product found for registration number "${regNo}" at EPA` });
     }
     res.json(product);
   } catch (err) {
+    if (err.statusCode === 400) {
+      return res.status(400).json({ error: err.message });
+    }
     if (err.name === 'AbortError') {
       console.error('Product lookup timeout:', regNo);
       return res.status(504).json({ error: 'EPA product request timed out' });
