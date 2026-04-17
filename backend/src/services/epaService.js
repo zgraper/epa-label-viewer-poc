@@ -234,6 +234,8 @@ export async function getProductByRegNo(regNo) {
     console.log(`EPA product lookup — distributor not found, falling back to base reg number: "${base}"`);
 
     const baseData = await lookupStandard(base);
+    // buildProductRecord returns null when data is null or contains no items,
+    // so we check explicitly to allow the HTML fallback to run in that case.
     const baseProduct = buildProductRecord(baseData, regNo, 'base_registration_fallback', base);
     if (baseProduct) return baseProduct;
   } else {
