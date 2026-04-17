@@ -56,9 +56,11 @@ export default function PdfViewer({ product, loading, error }) {
     );
   }
 
-  const productName = product.productName || 'Product';
-  const regNo       = product.epaRegNo    || '';
-  const company     = product.companyName || '';
+  const productName  = product.productName || 'Product';
+  const regNo        = product.epaRegNo    || '';
+  const company      = product.companyName || '';
+  const lookupMeta   = product.lookupMeta  || {};
+  const isFallback   = lookupMeta.resolvedVia === 'base_registration_fallback';
 
   const pdfFiles    = Array.isArray(product.pdfFiles) ? product.pdfFiles : [];
   const activePdf   = pdfFiles[activePdfIndex] ?? null;
@@ -76,6 +78,13 @@ export default function PdfViewer({ product, loading, error }) {
             <span>Label accepted: {formatAcceptedDate(activePdf.acceptedDate)}</span>
           )}
         </div>
+
+        {isFallback && (
+          <p className={styles.fallbackNotice}>
+            Distributor-specific lookup was unavailable. Showing the base EPA label for{' '}
+            <strong>{lookupMeta.baseRegNo}</strong>.
+          </p>
+        )}
 
         {/* Version selector — only shown when the product has more than one label */}
         {hasMultiple && (
