@@ -28,6 +28,7 @@ import {
   toEpaDistributorLookupKey,
   getBaseRegNo,
 } from './epaNormalizer.js';
+import { scrapeProductFromHtml } from './epaHtmlScraper.js';
 
 // ---------------------------------------------------------------------------
 // Search ranking
@@ -178,12 +179,40 @@ export async function searchPesticides(query, mode = 'product') {
 }
 
 /**
+ * Build a normalized product record from HTML-scraper output and lookup metadata.
+ * Used when the JSON API returns no product but the PPLS HTML page has PDF links.
+ *
+ * @param {{ productName: string, companyName: string, pdfFiles: Array }} scraped
+ * @param {string} requestedRegNo
+ * @returns {object}
+ */
+function buildProductRecordFromHtml(scraped, requestedRegNo) {
+  return {
+    epaRegNo:          requestedRegNo,
+    productName:       scraped.productName,
+    companyName:       scraped.companyName,
+    productStatus:     '',
+    activeIngredients: [],
+    pdfFiles:          scraped.pdfFiles,
+    lookupMeta: {
+      requestedRegNo,
+      resolvedVia: 'html_page_fallback',
+      baseRegNo:   null,
+    },
+  };
+}
+
+/**
  * Fetch full product details and label PDF history for a registration number.
  * Supports both standard 2-part numbers (e.g. "524-688") and distributor
  * 3-part numbers (e.g. "524-475-72207").
  *
- * For 3-part distributor numbers, if /ppldist/ returns no result, the function
- * automatically falls back to the base 2-part registration number via /ppls/.
+ * Lookup strategy:
+ *   1. For 3-part distributor numbers: try /ppldist/, then fall back to the
+ *      2-part base registration via /ppls/.
+ *   2. For 2-part standard numbers: try /ppls/.
+ *   3. If both JSON paths return null, fetch the PPLS HTML detail page and
+ *      extract PDF links from there.
  *
  * @param {string} regNo - EPA registration number
  * @returns {Promise<object|null>} Normalized product record (with lookupMeta), or null if not found
@@ -205,11 +234,22 @@ export async function getProductByRegNo(regNo) {
     console.log(`EPA product lookup — distributor not found, falling back to base reg number: "${base}"`);
 
     const baseData = await lookupStandard(base);
-    return buildProductRecord(baseData, regNo, 'base_registration_fallback', base);
+    // buildProductRecord returns null when data is null or contains no items,
+    // so we check explicitly to allow the HTML fallback to run in that case.
+    const baseProduct = buildProductRecord(baseData, regNo, 'base_registration_fallback', base);
+    if (baseProduct) return baseProduct;
+  } else {
+    // Standard 2-part registration number.
+    console.log(`EPA product lookup — detected type: standard`);
+    const data = await lookupStandard(regNo);
+    const product = buildProductRecord(data, regNo, 'standard', null);
+    if (product) return product;
   }
 
-  // Standard 2-part registration number.
-  console.log(`EPA product lookup — detected type: standard`);
-  const data = await lookupStandard(regNo);
-  return buildProductRecord(data, regNo, 'standard', null);
+  // JSON API returned nothing — try the PPLS HTML detail page as a last resort.
+  console.log(`EPA product lookup — JSON API returned no record, trying HTML fallback for "${regNo}"`);
+  const scraped = await scrapeProductFromHtml(regNo);
+  if (scraped) return buildProductRecordFromHtml(scraped, regNo);
+
+  return null;
 }
