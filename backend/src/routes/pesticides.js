@@ -6,10 +6,13 @@ const router = express.Router();
 
 const VALID_MODES = new Set(['product', 'ingredient', 'regno']);
 
-// GET /api/pesticides/search?q=<query>&mode=product|ingredient|regno
+// GET /api/pesticides/search?q=<query>&mode=product|ingredient|regno[&activeOnly=false]
 router.get('/search', async (req, res) => {
   const q    = (req.query.q    ?? '').trim();
   const mode = (req.query.mode ?? 'product').trim().toLowerCase();
+
+  // Default to true — only return active products unless the caller opts out.
+  const activeOnly = req.query.activeOnly !== 'false';
 
   if (!q) {
     return res.status(400).json({ error: 'Missing required query parameter "q"' });
@@ -21,7 +24,7 @@ router.get('/search', async (req, res) => {
   }
 
   try {
-    const result = await searchPesticides(q, mode);
+    const result = await searchPesticides(q, mode, activeOnly);
     res.json(result);
   } catch (err) {
     if (err.name === 'AbortError') {
