@@ -71,6 +71,24 @@
   cursor: default;
 }
 
+.unsupported {
+  opacity: 0.65;
+}
+
+.viewBtnUnsupported {
+  color: #6b7280;
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  cursor: not-allowed;
+}
+
+.unsupportedNote {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: #9ca3af;
+  font-style: italic;
+}
+
 .message {
   padding: 24px 16px;
   color: #6b7280;
